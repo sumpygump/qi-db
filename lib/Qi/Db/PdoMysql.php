@@ -56,6 +56,10 @@ class Qi_Db_PdoMysql
      */
     public function __construct($dbcfg)
     {
+        if (empty($dbcfg)) {
+            throw new Exception("Missing configuration parameter");
+        }
+
         $cfgDefaults = array(
             'log'      => false,
             'log_file' => '',
@@ -75,11 +79,11 @@ class Qi_Db_PdoMysql
                 $this->_cfg['pass']
             );
         } catch (Exception $exception) {
-            echo $exception->getMessage() . "\n";
+            throw new Exception("Error establishing database connection.");
         }
 
         if (!$this->_conn) {
-            echo "PdoMysql connection error.\n";
+            throw new Exception("PdoMysql connection error.");
         }
     }
 
