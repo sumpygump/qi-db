@@ -1,0 +1,23 @@
+{
+    "name": "sumpygump/qi-db",
+    "type": "library",
+    "description": "Basic database adapter",
+    "keywords": ["database","mysql","sqlite","adapter"],
+    "homepage": "http://quantalideas.com/code/qi-db",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jansen Price",
+            "email": "jansen.price@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3"
+    },
+    "autoload": {
+        "psr-0" : {
+            "Qi_Db_" : "lib/"
+        }
+    }
+}
+
