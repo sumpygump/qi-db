@@ -1,38 +1,44 @@
 <?php
+
 /**
  * Qi_Db_PdoMysql Test class file
  *
  * @package Qi
  */
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
+
+namespace Qi\Db\Tests;
+
+use Qi\Db\PdoException;
+use Qi\Db\PdoMysql;
+
 /**
  * Qi_Console_PdoMysql Test class
  *
- * @uses BaseTestCase
  * @package Qi
- * @author Jansen Price <jansen.price@gmail.com>
- * @version $Id$
+ * @author  Jansen Price <jansen.price@gmail.com>
  */
-class Qi_Db_PdoMysqlTest extends BaseTestCase
+class PdoMysqlTest extends BaseTestCase
 {
     /**
      * Setup before each test
      *
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
-        $cfg = array(
+        $cfg = [
             'log'      => true,
             'log_file' => 'testdb.log',
             'host'     => 'localhost',
             'db'       => 'test1',
             'user'     => 'root',
             'pass'     => '',
-        );
+        ];
 
-        $this->_createObject($cfg);
-        $this->_createTestTable();
+        $this->createObject($cfg);
+        $this->createTestTable();
     }
 
     /**
@@ -40,49 +46,52 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      *
      * @return void
      */
-    public function tearDown()
+    public function tearDown(): void
     {
-        $this->_dropTestTable();
+        $this->dropTestTable();
         //@unlink('testdb.log');
     }
 
     /**
      * Create object
      *
-     * @param array $cfg Config
+     * @param  array $cfg Config
      * @return void
      */
-    protected function _createObject($cfg)
+    protected function createObject($cfg)
     {
-        $this->_object = new Qi_Db_PdoMysql($cfg);
+        $this->_object = new PdoMysql($cfg);
     }
 
     /**
      * Constructor test with empty array
      *
-     * @expectedException Qi_Db_PdoException Invalid 0
      * @return void
      */
     public function testConstructEmptyArgs()
     {
-        $cfg = array();
+        $this->expectException(PdoException::class);
+        $this->expectExceptionMessage('Invalid');
 
-        $this->_createObject($cfg);
+        $cfg = [];
+
+        $this->createObject($cfg);
     }
 
     /**
      * testConstructWithBadParams
      *
-     * @expectedException Qi_Db_PdoException
      * @return void
      */
     public function testConstructWithBadParams()
     {
-        $cfg = array(
-            'dbfile' => ':mysql:dbname=testdb;unix_socket=/path/to/socket',
-        );
+        $this->expectException(PdoException::class);
 
-        $this->_createObject($cfg);
+        $cfg = [
+            'dbfile' => ':mysql:dbname=testdb;unix_socket=/path/to/socket',
+        ];
+
+        $this->createObject($cfg);
     }
 
     /**
@@ -96,18 +105,20 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
 
         $r = $this->_object->fetchRows($sql);
 
-        $this->assertEquals(array(), $r);
+        $this->assertEquals([], $r);
     }
 
     /**
      * Create table once it was already called
      *
-     * @return void
-     * @expectedException Qi_Db_PdoException already 1050
+     * @return            void
      */
     public function testCreateTableTwice()
     {
-        $this->_createTestTable();
+        $this->expectException('PdoException');
+        $this->expectExceptionMessage('already');
+
+        $this->createTestTable();
     }
 
     /**
@@ -119,13 +130,13 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
     {
         $sql = "insert into users (name, email) values (?, ?)";
 
-        $data = array('jansen', 'jansen@test.com');
+        $data = ['jansen', 'jansen@test.com'];
 
-        $expected = array(
+        $expected = [
             'id'    => '1',
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
         $r = $this->_object->executeQuery($sql, $data);
 
@@ -139,25 +150,18 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
     /**
      * testInvalidQuery
      *
-     * @expectedException Qi_Db_PdoException doesn't
      * @return void
      */
     public function testInvalidQuery()
     {
+        $this->expectException('PdoException');
+        $this->expectExceptionMessage('doesn\'t');
+
         $sql = "SELECT * FROM foobar WHERE email=?";
 
-        $data = array('test');
+        $data = ['test'];
 
         $result = $this->_object->executeQuery($sql, $data);
-    }
-
-    /**
-     * Test invalid statement
-     *
-     * @return void
-     */
-    public function testInvalidStatement()
-    {
     }
 
     /**
@@ -169,11 +173,11 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
     {
         $set = "(`name`, `email`) values ('jansen', 'jansen@test.com')";
 
-        $expected = array(
+        $expected = [
             'id'    => '1',
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
         $r = $this->_object->rawInsert('users', $set);
 
@@ -187,11 +191,13 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
     /**
      * Test raw insert with error
      *
-     * @expectedException Qi_Db_PdoException syntax 1064
      * @return void
      */
     public function testRawInsertWithError()
     {
+        $this->expectException('PdoException');
+        $this->expectExceptionMessage('syntax');
+
         $set = "'name', 'email') values ('jansen', 'jansen@test.com')";
 
         $expected = false;
@@ -213,22 +219,22 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testInsert()
     {
-        $data = array(
+        $data = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
-        $expected = array(
+        $expected = [
             'id'    => '1',
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
         $r = $this->_object->insert('users', $data);
         $this->assertEquals('1', $r);
 
         $sql = "select * from users";
-        
+
         $actual = $this->_object->fetchRows($sql);
 
         $this->assertEquals($expected, end($actual));
@@ -238,15 +244,17 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      * Test calling insert with a column that doesn't exist on table
      *
      * @return void
-     * @expectedException Qi_Db_PdoException flaxx 1054
      */
     public function testInsertWithExtraColumn()
     {
-        $data = array(
+        $this->expectException('PdoException');
+        $this->expectExceptionMessage('flaxx');
+
+        $data = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
             'flaxx' => 'none',
-        );
+        ];
 
         $r = $this->_object->insert('users', $data);
         $this->assertFalse($r);
@@ -260,8 +268,10 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
     public function testSafeUpdate()
     {
         $response = $this->_object->rawUpdate(
-            'users', "name='orihah'", 'id=?',
-            array(1)
+            'users',
+            "name='orihah'",
+            'id=?',
+            [1]
         );
 
         $this->assertTrue($response);
@@ -274,19 +284,18 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testUpdate()
     {
-        $data = array(
+        $data = [
             'name' => 'orihah',
             'email' => 'orihah@test.com',
-        );
+        ];
 
-        $response = $this->_object->update('users', $data, 'id=?', array(1));
+        $response = $this->_object->update('users', $data, 'id=?', [1]);
         $this->assertTrue($response);
-
     }
 
     public function testDelete()
     {
-        $response = $this->_object->delete('users', 'id=?', array(1));
+        $response = $this->_object->delete('users', 'id=?', [1]);
         $this->assertTrue($response);
     }
 
@@ -297,7 +306,7 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testRawDelete()
     {
-        $response = $this->_object->rawDelete('users', 'id=?', array(1));
+        $response = $this->_object->rawDelete('users', 'id=?', [1]);
         $this->assertTrue($response);
     }
 
@@ -308,7 +317,7 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testSimpleFetchValue()
     {
-        $this->_populateTestData();
+        $this->populateTestData();
         $name = $this->_object->simpleFetchValue('name', 'users', "id='1'");
 
         $this->assertEquals('jansen', $name);
@@ -321,7 +330,7 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testSimpleFetchValueWithoutQuotes()
     {
-        $this->_populateTestData();
+        $this->populateTestData();
         $name = $this->_object->simpleFetchValue('name', 'users', "id=1");
 
         $this->assertEquals('jansen', $name);
@@ -334,7 +343,7 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testSimpleFetchValueMultipleColumns()
     {
-        $this->_populateTestData();
+        $this->populateTestData();
         $result = $this->_object->simpleFetchValue('name,email', 'users', "id=1");
 
         $this->assertEquals('jansen', $result);
@@ -347,7 +356,7 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testSimpleFetchValueNoResults()
     {
-        $this->_populateTestData();
+        $this->populateTestData();
         $result = $this->_object->simpleFetchValue('name', 'users', "id=22");
 
         $this->assertFalse($result);
@@ -360,14 +369,14 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testSimpleFetchRow()
     {
-        $this->_populateTestData();
+        $this->populateTestData();
 
         $result = $this->_object->simpleFetchRow('name,email', 'users', 'id=1');
 
-        $expected = array(
+        $expected = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
         $this->assertEquals($expected, $result);
     }
@@ -379,11 +388,11 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testSimpleFetchRowNoResults()
     {
-        $this->_populateTestData();
+        $this->populateTestData();
 
         $result = $this->_object->simpleFetchRow('name,email', 'users', 'id=22');
 
-        $this->assertEquals(array(), $result);
+        $this->assertEquals([], $result);
     }
 
     /**
@@ -393,15 +402,15 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testSimpleFetchRowOnlyOne()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
         $result = $this->_object->simpleFetchRow('name,email', 'users', '');
 
-        $expected = array(
+        $expected = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
         $this->assertEquals($expected, $result);
     }
@@ -413,21 +422,21 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testSimpleFetchRows()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
         $result = $this->_object->simpleFetchRows('name,email', 'users', '');
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'name' => 'jansen',
                 'email' => 'jansen@test.com',
-            ),
-            array(
+            ],
+            [
                 'name' => 'orihah',
                 'email' => 'orihah@test.com',
-            ),
-        );
+            ],
+        ];
 
         $this->assertEquals($expected, $result);
     }
@@ -439,12 +448,12 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testSimpleFetchRowsNoRecords()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
         $result = $this->_object->simpleFetchRows('name,email', 'users', 'id > 22');
 
-        $expected = array();
+        $expected = [];
 
         $this->assertEquals($expected, $result);
     }
@@ -456,8 +465,8 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testGetCount()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
         $result = $this->_object->getCount('users', '');
 
@@ -471,8 +480,8 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testGetCountWhereClause()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
         $result = $this->_object->getCount('users', 'id=1');
 
@@ -486,8 +495,8 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testGetCountZero()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
         $result = $this->_object->getCount('users', 'id > 101');
 
@@ -507,17 +516,17 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
 
         $statement = $this->_object->executeQuery("describe `users`");
 
-        $schema = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $schema = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
         // This is the expected third column (row in pragma array)
-        $expected = array(
+        $expected = [
             'Field'      => 'active',
-            'Type'       => 'int(11)',
+            'Type'       => 'int',
             'Null'       => 'YES',
             'Key'        => '',
             'Default'    => null,
             'Extra'      => '',
-        );
+        ];
 
         $this->assertEquals($expected, $schema[3]);
     }
@@ -525,11 +534,13 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
     /**
      * Test raw alter with an error
      *
-     * @expectedException Qi_Db_PdoException Multiple
      * @return void
      */
     public function testRawAlterError()
     {
+        $this->expectException('PdoException');
+        $this->expectExceptionMessage('Multiple');
+
         $alter = 'ADD COLUMN active integer PRIMARY KEY';
 
         $result = $this->_object->rawAlter('users', $alter);
@@ -566,7 +577,7 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testFetchRowNoResults()
     {
-        $this->_populateTestData();
+        $this->populateTestData();
         $result = $this->_object->fetchRow('SELECT * FROM users WHERE id=22');
 
         $this->assertFalse($result);
@@ -579,22 +590,22 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testFetchRowWithBindData()
     {
-        $data = array(
+        $data = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
-        $expected = array(
+        $expected = [
             'id'    => '1',
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
         $r = $this->_object->insert('users', $data);
 
         $q = "select * from users where id=?";
 
-        $data = array('1');
+        $data = ['1'];
 
         $r = $this->_object->fetchRow($q, $data);
         $this->assertEquals($expected, $r);
@@ -637,7 +648,7 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
 
         $result = $this->_object->getErrors();
 
-        $this->assertEquals(array(''), $result);
+        $this->assertEquals([''], $result);
     }
 
     /**
@@ -647,15 +658,15 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      */
     public function testLog()
     {
-        $cfg = array(
+        $cfg = [
             'db'       => 'test1',
             'user'     => 'root',
             'pass'     => '',
             'log'      => false,
             'log_file' => 'testdb.log',
-        );
+        ];
 
-        $this->_createObject($cfg);
+        $this->createObject($cfg);
 
         $result = $this->_object->log('a message');
 
@@ -667,7 +678,7 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      *
      * @return void
      */
-    protected function _createTestTable()
+    protected function createTestTable()
     {
         $sql = "create table users (
             `id` tinyint auto_increment,
@@ -679,7 +690,7 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
         $this->_object->executeQuery($sql);
     }
 
-    protected function _dropTestTable()
+    protected function dropTestTable()
     {
         $sql = "DROP TABLE `users`";
 
@@ -691,12 +702,12 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      *
      * @return void
      */
-    protected function _populateTestData()
+    protected function populateTestData()
     {
-        $data = array(
+        $data = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
         return $this->_object->insert('users', $data);
     }
@@ -706,14 +717,13 @@ class Qi_Db_PdoMysqlTest extends BaseTestCase
      *
      * @return void
      */
-    protected function _populateMoreTestData()
+    protected function populateMoreTestData()
     {
-        $data = array(
+        $data = [
             'name'  => 'orihah',
             'email' => 'orihah@test.com',
-        );
+        ];
 
         return $this->_object->insert('users', $data);
     }
 }
-

@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Abstract Pdo Db class file
  *
  * @package Qi
  * @subpackage Db
  */
+
+namespace Qi\Db;
 
 /**
  * Qi Db Abstract class
@@ -17,16 +20,16 @@
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  * @version 1.2.1
  */
-class Qi_Db_PdoAbstract
+class PdoAbstract
 {
     /**#@+
      * Constants for Errinfo()
      *
      * @var int
      */
-    const ERRINFO_SQLSTATE_CODE = 0;
-    const ERRINFO_ERROR_CODE    = 1;
-    const ERRINFO_ERROR_MESSAGE = 2;
+    public const ERRINFO_SQLSTATE_CODE = 0;
+    public const ERRINFO_ERROR_CODE    = 1;
+    public const ERRINFO_ERROR_MESSAGE = 2;
     /**#@-*/
 
     /**
@@ -34,14 +37,14 @@ class Qi_Db_PdoAbstract
      *
      * @var array
      */
-    protected $_config;
+    protected $config;
 
     /**
      * Db Config defaults
      *
      * @var array
      */
-    protected $_configDefaults = array(
+    protected $configDefaults = array(
         'log'      => false,
         'log_file' => '',
     );
@@ -51,21 +54,21 @@ class Qi_Db_PdoAbstract
      *
      * @var PDO
      */
-    protected $_resource;
+    protected $resource;
 
     /**
      * Array of errors encountered
      *
      * @var array
      */
-    protected $_errors = array();
+    protected $errors = array();
 
     /**
      * Character to delimit table names
      *
      * @var string
      */
-    protected $_tableDelimiterChar = '';
+    protected $tableDelimiterChar = '';
 
     /**
      * Constructor
@@ -73,17 +76,13 @@ class Qi_Db_PdoAbstract
      * @param array $config Database configuration data
      * @return void
      */
-    public function __construct($config)
+    public function __construct($config = null)
     {
-        $configDefaults = array(
-            'log'      => false,
-            'log_file' => '',
-            'dbfile'   => 'data.db3',
-            'version'  => '3',
-        );
+        if (!$config) {
+            $config = [];
+        }
 
-
-        $this->_config = array_merge($this->_configDefaults, (array) $config);
+        $this->config = array_merge($this->configDefaults, (array) $config);
 
         $this->init();
     }
@@ -115,10 +114,10 @@ class Qi_Db_PdoAbstract
         }
 
         // Prepare the query
-        $statement = $this->_resource->prepare($sqlString);
+        $statement = $this->resource->prepare($sqlString);
 
         if (!$statement) {
-            $exception = $this->_logPdoError($this->_resource->errorInfo());
+            $exception = $this->logPdoError($this->resource->errorInfo());
             throw $exception;
         }
 
@@ -130,7 +129,7 @@ class Qi_Db_PdoAbstract
         }
 
         if (!$status) {
-            $exception = $this->_logPdoError($statement->errorInfo());
+            $exception = $this->logPdoError($statement->errorInfo());
             throw $exception;
         }
 
@@ -156,7 +155,7 @@ class Qi_Db_PdoAbstract
 
         $this->rawInsert($tableName, $sqlString, $values);
 
-        return $this->_resource->lastInsertId();
+        return $this->resource->lastInsertId();
     }
 
     /**
@@ -169,7 +168,7 @@ class Qi_Db_PdoAbstract
      */
     public function rawInsert($tableName, $sqlString, $values = null)
     {
-        $tableName = $this->_tableDelimiterChar . $tableName . $this->_tableDelimiterChar;
+        $tableName = $this->tableDelimiterChar . $tableName . $this->tableDelimiterChar;
         $sql = "INSERT INTO $tableName $sqlString";
 
         $this->executeQuery($sql, $values);
@@ -179,7 +178,7 @@ class Qi_Db_PdoAbstract
 
     /**
      * Update a row
-     * 
+     *
      * @param string $tableName Table name
      * @param array $data Associative array of data
      * @param string $where Where clause content
@@ -211,7 +210,7 @@ class Qi_Db_PdoAbstract
      */
     public function rawUpdate($tableName, $assignmentString, $where, $values = null)
     {
-        $tableName = $this->_tableDelimiterChar . $tableName . $this->_tableDelimiterChar;
+        $tableName = $this->tableDelimiterChar . $tableName . $this->tableDelimiterChar;
         $sql = "UPDATE $tableName SET $assignmentString WHERE $where";
 
         $this->executeQuery($sql, $values);
@@ -242,7 +241,7 @@ class Qi_Db_PdoAbstract
      */
     public function rawDelete($tableName, $where, $values = null)
     {
-        $tableName = $this->_tableDelimiterChar . $tableName . $this->_tableDelimiterChar;
+        $tableName = $this->tableDelimiterChar . $tableName . $this->tableDelimiterChar;
         $sql = "DELETE FROM $tableName WHERE $where";
 
         $this->executeQuery($sql, $values);
@@ -305,7 +304,7 @@ class Qi_Db_PdoAbstract
      *                     (SQLITE_NUM, SQLITE_ASSOC, SQLITE_BOTH)
      * @return array|bool The resulting row or null
      */
-    public function fetchRow($query, $values = null, $indices = PDO::FETCH_ASSOC)
+    public function fetchRow($query, $values = null, $indices = \PDO::FETCH_ASSOC)
     {
         $statement = $this->executeQuery($query, $values);
 
@@ -321,7 +320,7 @@ class Qi_Db_PdoAbstract
      *                     (SQLITE_NUM, SQLITE_ASSOC, SQLITE_BOTH)
      * @return array|bool The resulting rows or false
      */
-    public function fetchRows($query, $values = null, $indices = PDO::FETCH_ASSOC)
+    public function fetchRows($query, $values = null, $indices = \PDO::FETCH_ASSOC)
     {
         $statement = $this->executeQuery($query, $values);
 
@@ -356,12 +355,12 @@ class Qi_Db_PdoAbstract
      */
     public function simpleFetchValue($column, $tableName, $where)
     {
-        $tableName = $this->_tableDelimiterChar . $tableName . $this->_tableDelimiterChar;
+        $tableName = $this->tableDelimiterChar . $tableName . $this->tableDelimiterChar;
         $sql = "SELECT $column FROM $tableName WHERE $where";
 
         $statement = $this->executeQuery($sql);
 
-        $row = $statement->fetch(PDO::FETCH_NUM);
+        $row = $statement->fetch(\PDO::FETCH_NUM);
 
         if (isset($row[0])) {
             return $row[0];
@@ -431,7 +430,7 @@ class Qi_Db_PdoAbstract
      */
     public function __call($method, $args)
     {
-        return call_user_func_array(array($this->_resource, $method), $args);
+        return call_user_func_array(array($this->resource, $method), $args);
     }
 
     /**
@@ -442,7 +441,7 @@ class Qi_Db_PdoAbstract
      */
     public function addError($errorMessage)
     {
-        $this->_errors = array_merge($this->_errors, array($errorMessage));
+        $this->errors = array_merge($this->errors, array($errorMessage));
 
         return $this;
     }
@@ -454,7 +453,7 @@ class Qi_Db_PdoAbstract
      */
     public function getErrors()
     {
-        return $this->_errors;
+        return $this->errors;
     }
 
     /**
@@ -466,7 +465,7 @@ class Qi_Db_PdoAbstract
      */
     public function log($message, $label = null)
     {
-        if (!$this->_config['log']) {
+        if (!$this->config['log']) {
             return false;
         }
 
@@ -475,7 +474,7 @@ class Qi_Db_PdoAbstract
         }
 
         file_put_contents(
-            $this->_config['log_file'],
+            $this->config['log_file'],
             $label . " ==> " . $message . "\n",
             FILE_APPEND
         );
@@ -483,11 +482,11 @@ class Qi_Db_PdoAbstract
 
     /**
      * Log a PDO Error
-     * 
+     *
      * @param array $err PDO Error Info array
      * @return void
      */
-    protected function _logPdoError($err)
+    protected function logPdoError($err)
     {
         // Log the error
         $this->log(
@@ -501,22 +500,9 @@ class Qi_Db_PdoAbstract
         // Add to the Db Object error list
         $this->addError($errorMessage);
 
-        return new Qi_Db_PdoException(
-            $errorMessage, $err[self::ERRINFO_ERROR_CODE]
+        return new PdoException(
+            $errorMessage,
+            $err[self::ERRINFO_ERROR_CODE]
         );
     }
 }
-
-/**
- * Qi_Db_PdoException
- *
- * @uses Exception
- * @package Qi
- * @subpackage Db
- * @author Jansen Price <jansen.price@gmail.com>
- * @version $Id$
- */
-class Qi_Db_PdoException extends Exception
-{
-}
-

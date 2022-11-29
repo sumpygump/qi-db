@@ -3,7 +3,7 @@
     "type": "library",
     "description": "Basic database adapter",
     "keywords": ["database","mysql","sqlite","adapter"],
-    "homepage": "http://quantalideas.com/code/qi-db",
+    "homepage": "https://quantalideas.com/code/qi-db",
     "license": "MIT",
     "authors": [
         {
@@ -14,9 +14,12 @@
     "require": {
         "php": ">=5.3"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
     "autoload": {
         "psr-0" : {
-            "Qi_Db_" : "lib/"
+            "Qi\\Db" : "lib/"
         }
     }
 }

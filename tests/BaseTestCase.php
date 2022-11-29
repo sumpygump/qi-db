@@ -1,30 +1,28 @@
 <?php
+
 /**
  * Base Test Case class file
  *
- * @package Apricot
+ * @package Qi
  */
 
-/**
- * @see PHPUnit/Framework/TestCase.php
- */
-require_once 'PHPUnit/Framework/TestCase.php';
+namespace Qi\Db\Tests;
+
+use PHPUnit\Framework\TestCase;
 
 /**
  * Base Test Case
- * 
- * @uses PHPUnit_Framework_TestCase
- * @package Apricot
+ *
+ * @package    Qi
  * @subpackage Tests
- * @author Jansen Price <jansen.price@gmail.com>
- * @version $Id$
+ * @author     Jansen Price <jansen.price@gmail.com>
  */
-class BaseTestCase extends PHPUnit_Framework_TestCase
+class BaseTestCase extends TestCase
 {
     /**
      * Storage of object being tested
      *
      * @var object
      */
-    protected $_object;
+    protected $object;
 }

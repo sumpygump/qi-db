@@ -1,30 +1,33 @@
 <?php
+
 /**
- * Pdo Mysql class file 
+ * Pdo Mysql class file
  *
  * @package Qi
  * @subpackage Db
  */
 
+namespace Qi\Db;
+
 /**
  * Qi Db PdoMysql class
  *
  * Provides common functions for interface to mysql db.
- * 
+ *
  * @package Qi
  * @subpackage Db
  * @author Jansen Price <jansen.price@gmail.com>
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  * @version 1.2.1
  */
-class Qi_Db_PdoMysql extends Qi_Db_PdoAbstract
+class PdoMysql extends PdoAbstract
 {
     /**
      * Db Config defaults
      *
      * @var array
      */
-    protected $_configDefaults = array(
+    protected $configDefaults = array(
         'log'      => false,
         'log_file' => '',
         'host'     => '',
@@ -38,7 +41,7 @@ class Qi_Db_PdoMysql extends Qi_Db_PdoAbstract
      *
      * @var string
      */
-    protected $_tableDelimiterChar = '`';
+    protected $tableDelimiterChar = '`';
 
     /**
      * Initialize DB resource
@@ -49,23 +52,23 @@ class Qi_Db_PdoMysql extends Qi_Db_PdoAbstract
      */
     public function init()
     {
-        if (trim($this->_config['db']) == '') {
-            throw new Qi_Db_PdoException("Invalid connection parameters.");
+        if (trim($this->config['db']) == '') {
+            throw new PdoException("Invalid connection parameters.");
         }
 
         try {
-            $this->_resource = new PDO(
-                'mysql:host=' . $this->_config['host']
-                . ';dbname=' . $this->_config['db'],
-                $this->_config['user'],
-                $this->_config['pass']
+            $this->resource = new \PDO(
+                'mysql:host=' . $this->config['host']
+                . ';dbname=' . $this->config['db'],
+                $this->config['user'],
+                $this->config['pass']
             );
-        } catch (Exception $exception) {
-            throw new Qi_Db_PdoException($exception->getMessage());
+        } catch (\Exception $exception) {
+            throw new PdoException($exception->getMessage());
         }
 
-        if (!$this->_resource) {
-            throw new Qi_Db_PdoException("PdoMysql connection error.");
+        if (!$this->resource) {
+            throw new PdoException("PdoMysql connection error.");
         }
     }
 
@@ -77,9 +80,9 @@ class Qi_Db_PdoMysql extends Qi_Db_PdoAbstract
      */
     public function rawOptimize($tableName)
     {
-        $tableName = $this->_tableDelimiterChar . $tableName . $this->_tableDelimiterChar;
+        $tableName = $this->tableDelimiterChar . $tableName . $this->tableDelimiterChar;
         $sql = "OPTIMIZE TABLE $tableName";
-       
+
         $this->executeQuery($sql);
 
         return true;
@@ -93,9 +96,9 @@ class Qi_Db_PdoMysql extends Qi_Db_PdoAbstract
      */
     public function rawRepair($tableName)
     {
-        $tableName = $this->_tableDelimiterChar . $tableName . $this->_tableDelimiterChar;
+        $tableName = $this->tableDelimiterChar . $tableName . $this->tableDelimiterChar;
         $sql = "REPAIR TABLE $tableName";
-       
+
         $this->executeQuery($sql);
 
         return true;

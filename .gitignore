@@ -1,2 +1,4 @@
 vendor
 .qis
+tests/.phpunit.result.cache
+composer.lock

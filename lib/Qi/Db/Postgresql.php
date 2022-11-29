@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Postgresql database file
  *
@@ -6,8 +7,7 @@
  * @subpackage Db
  */
 
-/** Default timezone */
-date_default_timezone_set('America/Chicago');
+namespace Qi\Db;
 
 /**
  * Qi_Db_Postgresql
@@ -20,7 +20,7 @@ date_default_timezone_set('America/Chicago');
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  * @version 0.8
  */
-class Qi_Db_Postgresql
+class Postgresql
 {
     /**
      * @var string The postgresql host to connect to
@@ -116,7 +116,7 @@ class Qi_Db_Postgresql
      * @param string $q The sql statement
      * @return array The resulting rows
      */
-    public function safe_query($q='')
+    public function safe_query($q = '')
     {
         $method = "pg_query";
         if (!$q) {
@@ -127,7 +127,8 @@ class Qi_Db_Postgresql
         if ($this->q_log['log']) {
             file_put_contents(
                 $this->q_log['log_file'],
-                date("m/d/Y H:i:s") . " ==>\n" . $q ."\n", FILE_APPEND
+                date("m/d/Y H:i:s") . " ==>\n" . $q . "\n",
+                FILE_APPEND
             );
         }
 
@@ -138,12 +139,13 @@ class Qi_Db_Postgresql
         set_error_handler(array(__CLASS__, "handle_error"));
         try {
             $result = $method($this->link, $q);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             restore_error_handler();
             if ($this->q_log['log']) {
                 file_put_contents(
                     $this->q_log['log_file'],
-                    "Error ==> " . $e->getMessage() . "\n\n", FILE_APPEND
+                    "Error ==> " . $e->getMessage() . "\n\n",
+                    FILE_APPEND
                 );
             }
             throw new Qi_Db_PostgresqlException($e->getMessage(), $e->getCode());
@@ -154,10 +156,11 @@ class Qi_Db_Postgresql
         if ($this->q_log['log']) {
             $handle = fopen($this->q_log['log_file'], 'a');
             if (!$result) {
-                fwrite($handle, "Error  ==> ".pg_last_error()."\n\n");
+                fwrite($handle, "Error  ==> " . pg_last_error() . "\n\n");
             } else {
                 fwrite(
-                    $handle, "Result ==> " . pg_num_rows($result)
+                    $handle,
+                    "Result ==> " . pg_num_rows($result)
                     . " row(s)\n\n"
                 );
             }
@@ -270,7 +273,7 @@ class Qi_Db_Postgresql
      * @param string $where The where clause
      * @return string The number of rows
      */
-    public function safe_count($table, $where="TRUE")
+    public function safe_count($table, $where = "TRUE")
     {
         $where = $this->_sanitize_where($where);
         return $this->getThing("select count(*) from $table where $where");
@@ -304,7 +307,7 @@ class Qi_Db_Postgresql
      *                     (PGSQL_NUM, PGSQL_ASSOC, PGSQL_BOTH)
      * @return array|bool The resulting row or false
      */
-    public function getRow($query, $indices=PGSQL_ASSOC)
+    public function getRow($query, $indices = PGSQL_ASSOC)
     {
         $r = $this->safe_query($query);
         if ($r && pg_num_rows($r) > 0) {
@@ -369,7 +372,7 @@ class Qi_Db_Postgresql
      * @param string $where The where clause
      * @return string The resulting number of rows
      */
-    public function getCount($table, $where="TRUE")
+    public function getCount($table, $where = "TRUE")
     {
         return $this->safe_count($table, $where);
     }
@@ -453,13 +456,12 @@ class Qi_Db_Postgresql
 /**
  * Qi_Db_PostgresqlException
  *
- * @uses Exception
  * @package Qi
  * @subpackage Db
  * @author Jansen Price <jansen.price@gmail.com>
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  * @version $Id$
  */
-class Qi_Db_PostgresqlException extends Exception
+class Qi_Db_PostgresqlException extends \Exception
 {
 }

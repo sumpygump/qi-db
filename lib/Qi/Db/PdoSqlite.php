@@ -1,10 +1,13 @@
 <?php
+
 /**
  * PdoSqlite Db class file
  *
  * @package Qi
  * @subpackage Db
  */
+
+namespace Qi\Db;
 
 /**
  * Qi Db PdoSqlite class
@@ -17,26 +20,26 @@
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  * @version 1.2.1
  */
-class Qi_Db_PdoSqlite extends Qi_Db_PdoAbstract
+class PdoSqlite extends PdoAbstract
 {
     /**
      * Db Config defaults
      *
      * @var array
      */
-    protected $_configDefaults = array(
+    protected $configDefaults = [
         'log'      => false,
         'log_file' => '',
         'dbfile'   => 'data.db3',
         'version'  => '3',
-    );
+    ];
 
     /**
      * Character to delimit table names
      *
      * @var string
      */
-    protected $_tableDelimiterChar = '';
+    protected $tableDelimiterChar = '';
 
     /**
      * Initialize DB resource
@@ -47,16 +50,16 @@ class Qi_Db_PdoSqlite extends Qi_Db_PdoAbstract
      */
     public function init()
     {
-        if ($this->_config['version'] == '2') {
+        if ($this->config['version'] == '2') {
             $dsnPrefix = 'sqlite2';
         } else {
             $dsnPrefix = 'sqlite';
         }
 
         try {
-            $this->_resource = new PDO($dsnPrefix . ':' . $this->_config['dbfile']);
-        } catch (Exception $exception) {
-            throw new Qi_Db_PdoException($exception->getMessage());
+            $this->resource = new \PDO($dsnPrefix . ':' . $this->config['dbfile']);
+        } catch (\Exception $exception) {
+            throw new PdoException($exception->getMessage());
         }
     }
 

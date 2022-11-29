@@ -1,36 +1,45 @@
 <?php
+
 /**
  * Qi_Db_PdoAbstract Test class file
  *
  * @package Qi
  */
 
-class Qi_Db_PdoFoo extends Qi_Db_PdoAbstract
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
+
+namespace Qi\Db\Tests;
+
+use Qi\Db\PdoAbstract;
+
+class QiPdoFoo extends PdoAbstract
 {
+    public function getConfig()
+    {
+        return $this->config;
+    }
 }
 
 /**
  * Qi_Console_PdoAbstract Test class
  *
- * @uses BaseTestCase
  * @package Qi
- * @author Jansen Price <jansen.price@gmail.com>
- * @version $Id$
+ * @author  Jansen Price <jansen.price@gmail.com>
  */
-class Qi_Db_PdoAbstractTest extends BaseTestCase
+class PdoAbstractTest extends BaseTestCase
 {
     /**
      * Setup before each test
      *
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
-        $config = array(
+        $config = [
             'db' => 'test1',
-        );
+        ];
 
-        $this->_object = new Qi_Db_PdoFoo($config);
+        $this->object = new QiPdoFoo($config);
     }
 
     /**
@@ -38,7 +47,7 @@ class Qi_Db_PdoAbstractTest extends BaseTestCase
      *
      * @return void
      */
-    public function tearDown()
+    public function tearDown(): void
     {
     }
 
@@ -46,11 +55,12 @@ class Qi_Db_PdoAbstractTest extends BaseTestCase
      * Test construct
      *
      * @expectedException PHPUnit_Framework_Error_Warning Missing
-     * @return void
+     * @return            void
      */
     public function testConstruct()
     {
-        $object = new Qi_Db_PdoFoo();
+        $object = new QiPdoFoo();
+        $this->assertEquals('', $object->getConfig()['log_file']);
     }
 
     /**
@@ -64,16 +74,19 @@ class Qi_Db_PdoAbstractTest extends BaseTestCase
             'db' => 'test1',
         );
 
-        $object = new Qi_Db_PdoFoo($config);
+        $object = new QiPdoFoo($config);
+        $this->assertEquals('test1', $object->getConfig()['db']);
     }
 
     public function testRawOptimize()
     {
-        $this->_object->rawOptimize('table1');
+        $result = $this->object->rawOptimize('table1');
+        $this->assertEquals(null, $result);
     }
 
     public function testRawRepair()
     {
-        $this->_object->rawRepair('table1');
+        $result = $this->object->rawRepair('table1');
+        $this->assertEquals(null, $result);
     }
 }

@@ -1,35 +1,41 @@
 <?php
+
 /**
- * Qi_Db_PdoSqlite Test class file
+ * Qi\Db\PdoSqlite Test class file
  *
  * @package Qi
  */
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
+
+namespace Qi\Db\Tests;
+
+use Qi\Db\PdoSqlite;
+use Qi\Db\PdoException;
+
 /**
- * Qi_Console_PdoSqlite Test class
+ * PdoSqlite Test class
  *
- * @uses BaseTestCase
  * @package Qi
- * @author Jansen Price <jansen.price@gmail.com>
- * @version $Id$
+ * @author  Jansen Price <jansen.price@gmail.com>
  */
-class Qi_Db_PdoSqliteTest extends BaseTestCase
+class PdoSqliteTest extends BaseTestCase
 {
     /**
      * Setup before each test
      *
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
-        $cfg = array(
+        $cfg = [
             'dbfile'   => 'test.db3',
             'log'      => true,
             'log_file' => 'testdb.log',
-        );
+        ];
 
-        $this->_createObject($cfg);
-        $this->_createTestTable();
+        $this->createObject($cfg);
+        $this->createTestTable();
     }
 
     /**
@@ -37,23 +43,12 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      *
      * @return void
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         @unlink('test.db3');
         @unlink('data.db3');
         @unlink('test.db2');
         @unlink('testdb.log');
-    }
-
-    /**
-     * Create object
-     *
-     * @param array $cfg Config
-     * @return void
-     */
-    protected function _createObject($cfg)
-    {
-        $this->_object = new Qi_Db_PdoSqlite($cfg);
     }
 
     /**
@@ -63,10 +58,10 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testConstructEmptyArgs()
     {
-        $cfg = array();
+        $cfg = [];
 
-        $this->_createObject($cfg);
-        $this->assertTrue(is_object($this->_object));
+        $this->createObject($cfg);
+        $this->assertTrue(is_object($this->object));
     }
 
     /**
@@ -78,44 +73,47 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testConstructSqliteVersionTwo()
     {
+        $this->expectException(PdoException::class);
+
         $cfg = array(
             'dbfile'  => 'test.db2',
             'version' => '2',
         );
 
-        $this->_createObject($cfg);
-        $this->assertTrue(is_object($this->_object));
+        $this->createObject($cfg);
     }
 
     /**
      * Test initializing connection to db file to a folder without write
      * permissions
      *
-     * @expectedException Qi_Db_PdoException unable
-     * @return void
+     * @return            void
      */
     public function testConstructToFolderWithoutWritePerms()
     {
-        $cfg = array(
-            'dbfile' => '/etc/testsqlite.db3',
-        );
+        $this->expectException(PdoException::class);
 
-        $this->_createObject($cfg);
+        $cfg = [
+            'dbfile' => '/etc/testsqlite.db3',
+        ];
+
+        $this->createObject($cfg);
     }
 
     /**
      * testConstructWithBadParams
      *
-     * @expectedException Qi_Db_PdoException
-     * @return void
+     * @return            void
      */
     public function testConstructWithBadParams()
     {
-        $cfg = array(
-            'dbfile' => ':mysql:dbname=testdb;unix_socket=/path/to/socket',
-        );
+        $this->expectException(PdoException::class);
 
-        $this->_createObject($cfg);
+        $cfg = [
+            'dbfile' => ':mysql:dbname=testdb;unix_socket=/path/to/socket',
+        ];
+
+        $this->createObject($cfg);
     }
 
     /**
@@ -127,20 +125,22 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
     {
         $sql = "select * from users";
 
-        $r = $this->_object->fetchRows($sql);
+        $r = $this->object->fetchRows($sql);
 
-        $this->assertEquals(array(), $r);
+        $this->assertEquals([], $r);
     }
 
     /**
      * Create table once it was already called
      *
      * @return void
-     * @expectedException Qi_Db_PdoException already 1
      */
     public function testCreateTableTwice()
     {
-        $this->_createTestTable();
+        $this->expectException('PdoException');
+        $this->expectExceptionMessage('already');
+
+        $this->createTestTable();
     }
 
     /**
@@ -152,19 +152,19 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
     {
         $sql = "insert into users (name, email) values (?, ?)";
 
-        $data = array('jansen', 'jansen@test.com');
+        $data = ['jansen', 'jansen@test.com'];
 
-        $expected = array(
+        $expected = [
             'id'    => '1',
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
-        $r = $this->_object->executeQuery($sql, $data);
+        $r = $this->object->executeQuery($sql, $data);
 
         $sql = "select * from users";
 
-        $actual = $this->_object->fetchRows($sql);
+        $actual = $this->object->fetchRows($sql);
 
         $this->assertEquals($expected, end($actual));
     }
@@ -172,25 +172,18 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
     /**
      * testInvalidQuery
      *
-     * @expectedException Qi_Db_PdoException such
      * @return void
      */
     public function testInvalidQuery()
     {
+        $this->expectException('PdoException');
+        $this->expectExceptionMessage('such');
+
         $sql = "SELECT * FROM foobar WHERE email=?";
 
-        $data = array();
+        $data = [];
 
-        $result = $this->_object->executeQuery($sql, $data);
-    }
-
-    /**
-     * Test invalid statement
-     *
-     * @return void
-     */
-    public function testInvalidStatement()
-    {
+        $result = $this->object->executeQuery($sql, $data);
     }
 
     /**
@@ -202,17 +195,17 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
     {
         $set = "('name', 'email') values ('jansen', 'jansen@test.com')";
 
-        $expected = array(
+        $expected = [
             'id'    => '1',
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
-        $r = $this->_object->rawInsert('users', $set);
+        $r = $this->object->rawInsert('users', $set);
 
         $sql = "select * from users";
 
-        $actual = $this->_object->fetchRows($sql);
+        $actual = $this->object->fetchRows($sql);
 
         $this->assertEquals($expected, end($actual));
     }
@@ -220,21 +213,23 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
     /**
      * Test raw insert with error
      *
-     * @expectedException Qi_Db_PdoException syntax 1
-     * @return void
+     * @return            void
      */
     public function testRawInsertWithError()
     {
+        $this->expectException('PdoException');
+        $this->expectExceptionMessage('syntax');
+
         $set = "'name', 'email') values ('jansen', 'jansen@test.com')";
 
         $expected = false;
 
-        $r = $this->_object->rawInsert('users', $set);
+        $r = $this->object->rawInsert('users', $set);
         $this->assertFalse($r);
 
         $sql = "select * from users";
 
-        $actual = $this->_object->fetchRows($sql);
+        $actual = $this->object->fetchRows($sql);
 
         $this->assertEquals($expected, end($actual));
     }
@@ -246,23 +241,23 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testInsert()
     {
-        $data = array(
+        $data = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
-        $expected = array(
+        $expected = [
             'id'    => '1',
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
-        $r = $this->_object->insert('users', $data);
+        $r = $this->object->insert('users', $data);
         $this->assertEquals('1', $r);
 
         $sql = "select * from users";
-        
-        $actual = $this->_object->fetchRows($sql);
+
+        $actual = $this->object->fetchRows($sql);
 
         $this->assertEquals($expected, end($actual));
     }
@@ -270,18 +265,20 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
     /**
      * Test calling insert with a column that doesn't exist on table
      *
-     * @return void
-     * @expectedException Qi_Db_PdoException flaxx 1
+     * @return            void
      */
     public function testInsertWithExtraColumn()
     {
-        $data = array(
+        $this->expectException('PdoException');
+        $this->expectExceptionMessage('flaxx');
+
+        $data = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
             'flaxx' => 'none',
-        );
+        ];
 
-        $r = $this->_object->insert('users', $data);
+        $r = $this->object->insert('users', $data);
         $this->assertFalse($r);
     }
 
@@ -292,9 +289,11 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testRawUpdate()
     {
-        $response = $this->_object->rawUpdate(
-            'users', "name='orihah'", 'id=?',
-            array(1)
+        $response = $this->object->rawUpdate(
+            'users',
+            "name='orihah'",
+            'id=?',
+            [1],
         );
 
         $this->assertTrue($response);
@@ -307,19 +306,18 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testUpdate()
     {
-        $data = array(
+        $data = [
             'name' => 'orihah',
             'email' => 'orihah@test.com',
-        );
+        ];
 
-        $response = $this->_object->update('users', $data, 'id=?', array(1));
+        $response = $this->object->update('users', $data, 'id=?', [1]);
         $this->assertTrue($response);
-
     }
 
     public function testDelete()
     {
-        $response = $this->_object->delete('users', 'id=?', array(1));
+        $response = $this->object->delete('users', 'id=?', [1]);
         $this->assertTrue($response);
     }
 
@@ -330,7 +328,7 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testRawDelete()
     {
-        $response = $this->_object->rawDelete('users', 'id=?', array(1));
+        $response = $this->object->rawDelete('users', 'id=?', [1]);
         $this->assertTrue($response);
     }
 
@@ -341,8 +339,8 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testSimpleFetchValue()
     {
-        $this->_populateTestData();
-        $name = $this->_object->simpleFetchValue('name', 'users', "id='1'");
+        $this->populateTestData();
+        $name = $this->object->simpleFetchValue('name', 'users', "id='1'");
 
         $this->assertEquals('jansen', $name);
     }
@@ -354,8 +352,8 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testSimpleFetchValueWithoutQuotes()
     {
-        $this->_populateTestData();
-        $name = $this->_object->simpleFetchValue('name', 'users', "id=1");
+        $this->populateTestData();
+        $name = $this->object->simpleFetchValue('name', 'users', "id=1");
 
         $this->assertEquals('jansen', $name);
     }
@@ -367,8 +365,8 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testSimpleFetchValueMultipleColumns()
     {
-        $this->_populateTestData();
-        $result = $this->_object->simpleFetchValue('name,email', 'users', "id=1");
+        $this->populateTestData();
+        $result = $this->object->simpleFetchValue('name,email', 'users', "id=1");
 
         $this->assertEquals('jansen', $result);
     }
@@ -380,8 +378,8 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testSimpleFetchValueNoResults()
     {
-        $this->_populateTestData();
-        $result = $this->_object->simpleFetchValue('name', 'users', "id=22");
+        $this->populateTestData();
+        $result = $this->object->simpleFetchValue('name', 'users', "id=22");
 
         $this->assertFalse($result);
     }
@@ -393,14 +391,14 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testSimpleFetchRow()
     {
-        $this->_populateTestData();
+        $this->populateTestData();
 
-        $result = $this->_object->simpleFetchRow('name,email', 'users', 'id=1');
+        $result = $this->object->simpleFetchRow('name,email', 'users', 'id=1');
 
-        $expected = array(
+        $expected = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
         $this->assertEquals($expected, $result);
     }
@@ -412,11 +410,11 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testSimpleFetchRowNoResults()
     {
-        $this->_populateTestData();
+        $this->populateTestData();
 
-        $result = $this->_object->simpleFetchRow('name,email', 'users', 'id=22');
+        $result = $this->object->simpleFetchRow('name,email', 'users', 'id=22');
 
-        $this->assertEquals(array(), $result);
+        $this->assertEquals([], $result);
     }
 
     /**
@@ -426,15 +424,15 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testSimpleFetchRowOnlyOne()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
-        $result = $this->_object->simpleFetchRow('name,email', 'users', '');
+        $result = $this->object->simpleFetchRow('name,email', 'users', '');
 
-        $expected = array(
+        $expected = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
         $this->assertEquals($expected, $result);
     }
@@ -446,21 +444,21 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testSimpleFetchRows()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
-        $result = $this->_object->simpleFetchRows('name,email', 'users', '');
+        $result = $this->object->simpleFetchRows('name,email', 'users', '');
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'name' => 'jansen',
                 'email' => 'jansen@test.com',
-            ),
-            array(
+            ],
+            [
                 'name' => 'orihah',
                 'email' => 'orihah@test.com',
-            ),
-        );
+            ],
+        ];
 
         $this->assertEquals($expected, $result);
     }
@@ -472,12 +470,12 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testSimpleFetchRowsNoRecords()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
-        $result = $this->_object->simpleFetchRows('name,email', 'users', 'id > 22');
+        $result = $this->object->simpleFetchRows('name,email', 'users', 'id > 22');
 
-        $expected = array();
+        $expected = [];
 
         $this->assertEquals($expected, $result);
     }
@@ -489,10 +487,10 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testGetCount()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
-        $result = $this->_object->getCount('users', '');
+        $result = $this->object->getCount('users', '');
 
         $this->assertEquals(2, $result);
     }
@@ -504,10 +502,10 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testGetCountWhereClause()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
-        $result = $this->_object->getCount('users', 'id=1');
+        $result = $this->object->getCount('users', 'id=1');
 
         $this->assertEquals(1, $result);
     }
@@ -519,10 +517,10 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testGetCountZero()
     {
-        $this->_populateTestData();
-        $this->_populateMoreTestData();
+        $this->populateTestData();
+        $this->populateMoreTestData();
 
-        $result = $this->_object->getCount('users', 'id > 101');
+        $result = $this->object->getCount('users', 'id > 101');
 
         $this->assertEquals(0, $result);
     }
@@ -536,21 +534,21 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
     {
         $alter = 'ADD COLUMN active integer';
 
-        $result = $this->_object->rawAlter('users', $alter);
+        $result = $this->object->rawAlter('users', $alter);
 
-        $statement = $this->_object->executeQuery("PRAGMA table_info('users')");
+        $statement = $this->object->executeQuery("PRAGMA table_info('users')");
 
-        $pragma = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $pragma = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
         // This is the expected third column (row in pragma array)
-        $expected = array(
-            'cid'        => '3',
+        $expected = [
+            'cid'        => 3,
             'name'       => 'active',
-            'type'       => 'integer',
-            'notnull'    => '0',
-            'dflt_value' => '',
-            'pk'         => '0',
-        );
+            'type'       => 'INTEGER',
+            'notnull'    => 0,
+            'dflt_value' => null,
+            'pk'         => 0,
+        ];
 
         $this->assertEquals($expected, $pragma[3]);
     }
@@ -558,14 +556,16 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
     /**
      * Test raw alter with an error
      *
-     * @expectedException Qi_Db_PdoException Cannot
-     * @return void
+     * @return            void
      */
     public function testRawAlterError()
     {
+        $this->expectException('PdoException');
+        $this->expectExceptionMessage('Cannot');
+
         $alter = 'ADD COLUMN active integer PRIMARY KEY';
 
-        $result = $this->_object->rawAlter('users', $alter);
+        $result = $this->object->rawAlter('users', $alter);
     }
 
     /**
@@ -575,7 +575,7 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testRawOptimize()
     {
-        $result = $this->_object->rawOptimize('users');
+        $result = $this->object->rawOptimize('users');
 
         $this->assertFalse($result);
     }
@@ -587,7 +587,7 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testRawRepair()
     {
-        $result = $this->_object->rawRepair('users');
+        $result = $this->object->rawRepair('users');
 
         $this->assertFalse($result);
     }
@@ -599,8 +599,8 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testFetchRowNoResults()
     {
-        $this->_populateTestData();
-        $result = $this->_object->fetchRow('SELECT * FROM users WHERE id=22');
+        $this->populateTestData();
+        $result = $this->object->fetchRow('SELECT * FROM users WHERE id=22');
 
         $this->assertFalse($result);
     }
@@ -612,24 +612,24 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testFetchRowWithBindData()
     {
-        $data = array(
+        $data = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
-        $expected = array(
+        $expected = [
             'id'    => '1',
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
-        $r = $this->_object->insert('users', $data);
+        $r = $this->object->insert('users', $data);
 
         $q = "select * from users where id=?";
 
-        $data = array('1');
+        $data = ['1'];
 
-        $r = $this->_object->fetchRow($q, $data);
+        $r = $this->object->fetchRow($q, $data);
         $this->assertEquals($expected, $r);
     }
 
@@ -640,7 +640,7 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testEscape()
     {
-        $result = $this->_object->escape("Don't blink");
+        $result = $this->object->escape("Don't blink");
 
         $expected = "Don''t blink";
 
@@ -654,7 +654,7 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testMagicCall()
     {
-        $result = $this->_object->errorInfo();
+        $result = $this->object->errorInfo();
 
         $this->assertEquals(3, count($result));
     }
@@ -666,11 +666,11 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testAddError()
     {
-        $this->_object->addError('');
+        $this->object->addError('');
 
-        $result = $this->_object->getErrors();
+        $result = $this->object->getErrors();
 
-        $this->assertEquals(array(''), $result);
+        $this->assertEquals([''], $result);
     }
 
     /**
@@ -680,17 +680,28 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      */
     public function testLog()
     {
-        $cfg = array(
+        $cfg = [
             'dbfile'   => 'test.db3',
             'log'      => false,
             'log_file' => 'testdb.log',
-        );
+        ];
 
-        $this->_createObject($cfg);
+        $this->createObject($cfg);
 
-        $result = $this->_object->log('a message');
+        $result = $this->object->log('a message');
 
         $this->assertFalse($result);
+    }
+
+    /**
+     * Create object
+     *
+     * @param  array $cfg Config
+     * @return void
+     */
+    protected function createObject($cfg)
+    {
+        $this->object = new PdoSqlite($cfg);
     }
 
     /**
@@ -698,7 +709,7 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      *
      * @return void
      */
-    protected function _createTestTable()
+    protected function createTestTable()
     {
         $sql = "create table users (
             'id' integer primary key,
@@ -706,7 +717,7 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
             'email' text
         );";
 
-        $this->_object->executeQuery($sql);
+        $this->object->executeQuery($sql);
     }
 
     /**
@@ -714,14 +725,14 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      *
      * @return void
      */
-    protected function _populateTestData()
+    protected function populateTestData()
     {
-        $data = array(
+        $data = [
             'name'  => 'jansen',
             'email' => 'jansen@test.com',
-        );
+        ];
 
-        return $this->_object->insert('users', $data);
+        return $this->object->insert('users', $data);
     }
 
     /**
@@ -729,13 +740,13 @@ class Qi_Db_PdoSqliteTest extends BaseTestCase
      *
      * @return void
      */
-    protected function _populateMoreTestData()
+    protected function populateMoreTestData()
     {
-        $data = array(
+        $data = [
             'name'  => 'orihah',
             'email' => 'orihah@test.com',
-        );
+        ];
 
-        return $this->_object->insert('users', $data);
+        return $this->object->insert('users', $data);
     }
 }
