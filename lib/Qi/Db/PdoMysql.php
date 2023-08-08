@@ -27,14 +27,14 @@ class PdoMysql extends PdoAbstract
      *
      * @var array
      */
-    protected $configDefaults = array(
+    protected $configDefaults = [
         'log'      => false,
         'log_file' => '',
         'host'     => '',
         'db'       => '',
         'user'     => '',
         'pass'     => '',
-    );
+    ];
 
     /**
      * Character to delimit table names

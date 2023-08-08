@@ -44,10 +44,10 @@ class PdoAbstract
      *
      * @var array
      */
-    protected $configDefaults = array(
+    protected $configDefaults = [
         'log'      => false,
         'log_file' => '',
-    );
+    ];
 
     /**
      * The database resource object
@@ -61,7 +61,7 @@ class PdoAbstract
      *
      * @var array
      */
-    protected $errors = array();
+    protected $errors = [];
 
     /**
      * Character to delimit table names
@@ -184,9 +184,9 @@ class PdoAbstract
      * @param string $where Where clause content
      * @return mixed
      */
-    public function update($tableName, $data, $where, $whereValues = array())
+    public function update($tableName, $data, $where, $whereValues = [])
     {
-        $assignmentString = array();
+        $assignmentString = [];
 
         foreach ($data as $name => $value) {
             $assignmentString[] = "$name=?";
@@ -269,7 +269,7 @@ class PdoAbstract
             return $rowData;
         }
 
-        return array();
+        return [];
     }
 
     /**
@@ -292,7 +292,7 @@ class PdoAbstract
             return $rowData;
         }
 
-        return array();
+        return [];
     }
 
     /**
@@ -430,7 +430,7 @@ class PdoAbstract
      */
     public function __call($method, $args)
     {
-        return call_user_func_array(array($this->resource, $method), $args);
+        return call_user_func_array([$this->resource, $method], $args);
     }
 
     /**
@@ -441,7 +441,7 @@ class PdoAbstract
      */
     public function addError($errorMessage)
     {
-        $this->errors = array_merge($this->errors, array($errorMessage));
+        $this->errors = array_merge($this->errors, [$errorMessage]);
 
         return $this;
     }

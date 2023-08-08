@@ -261,11 +261,11 @@ class PdoMysqlTest extends BaseTestCase
     }
 
     /**
-     * Test safe update
+     * Test raw update
      *
      * @return void
      */
-    public function testSafeUpdate()
+    public function testRawUpdate()
     {
         $response = $this->_object->rawUpdate(
             'users',
@@ -300,7 +300,7 @@ class PdoMysqlTest extends BaseTestCase
     }
 
     /**
-     * Test safe delete
+     * Test raw delete
      *
      * @return void
      */

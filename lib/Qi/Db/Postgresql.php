@@ -136,7 +136,7 @@ class Postgresql
         //  If the query fails, it will generate an error.
         //  To detect this we have to set an error_handler
         //  and re-throw a caught exception, so that we can log it too.
-        set_error_handler(array(__CLASS__, "handle_error"));
+        set_error_handler([__CLASS__, "handle_error"]);
         try {
             $result = $method($this->link, $q);
         } catch (\Exception $e) {
@@ -219,13 +219,13 @@ class Postgresql
         $q  = "select $thing from $table where $where";
         $rs = $this->getRows($q);
         if ($rs) {
-            $out = array();
+            $out = [];
             foreach ($rs as $a) {
                 $out[] = implode(",", $a);
             }
             return $out;
         }
-        return array();
+        return [];
     }
 
     /**
@@ -244,7 +244,7 @@ class Postgresql
         if ($rs) {
             return $rs;
         }
-        return array();
+        return [];
     }
 
     /**
@@ -263,7 +263,7 @@ class Postgresql
         if ($rs) {
             return $rs;
         }
-        return array();
+        return [];
     }
 
     /**
@@ -362,7 +362,7 @@ class Postgresql
             }
             return $out;
         }
-        return array();
+        return [];
     }
 
     /**
