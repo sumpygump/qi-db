@@ -7,7 +7,7 @@ namespace Qi\Db;
  *
  * @package Qi\Db
  * @author Jansen Price <jansen.price@gmail.com>
- * @version 1.2.1
+ * @version 1.3.0
  */
 class PdoException extends \Exception
 {

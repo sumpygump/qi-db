@@ -17,7 +17,7 @@ namespace Qi\Db;
  * @uses \Qi\Db\PdoAbstract
  * @author Jansen Price <jansen.price@gmail.com>
  * @license http://www.opensource.org/licenses/mit-license.php MIT
- * @version 1.2.1
+ * @version 1.3.0
  */
 class PdoPostgres extends PdoAbstract
 {
