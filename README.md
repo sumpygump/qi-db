@@ -45,7 +45,7 @@ $dbConfig = [
 $db = new Qi\Db\PdoMysql($dbConfig);
 ```
 
-This is some example code that illustrates using the `insert()` and `getRow()`
+This is some example code that illustrates using the `insert()` and `fetchRow()`
 methods of the PdoMysql class.
 
 ```
@@ -58,7 +58,7 @@ $newRow = [
 $db->insert('users', $newRow);
 
 // This will fetch a user by email address
-$user = $db->getRow("SELECT * FROM `users` WHERE `email`=?", ['test@example.com']);
+$user = $db->fetchRow("SELECT * FROM `users` WHERE `email`=?", ['test@example.com']);
 ```
 
 Please check the class source code for the full list of other methods that can
