@@ -3,8 +3,7 @@
 /**
  * Pdo Mysql class file
  *
- * @package Qi
- * @subpackage Db
+ * @package Qi\Db
  */
 
 namespace Qi\Db;
@@ -14,8 +13,8 @@ namespace Qi\Db;
  *
  * Provides common functions for interface to mysql db.
  *
- * @package Qi
- * @subpackage Db
+ * @package Qi\Db
+ * @uses \Qi\Db\PdoAbstract
  * @author Jansen Price <jansen.price@gmail.com>
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  * @version 1.2.1
@@ -25,7 +24,7 @@ class PdoMysql extends PdoAbstract
     /**
      * Db Config defaults
      *
-     * @var array
+     * @var array<string, string|int|bool>
      */
     protected $configDefaults = [
         'log'      => false,
@@ -52,7 +51,7 @@ class PdoMysql extends PdoAbstract
      */
     public function init()
     {
-        if (trim($this->config['db']) == '') {
+        if (trim((string) $this->config['db']) == '') {
             throw new PdoException("Invalid connection parameters.");
         }
 
@@ -60,8 +59,8 @@ class PdoMysql extends PdoAbstract
             $this->resource = new \PDO(
                 'mysql:host=' . $this->config['host']
                 . ';dbname=' . $this->config['db'],
-                $this->config['user'],
-                $this->config['pass']
+                (string) $this->config['user'],
+                (string) $this->config['pass']
             );
         } catch (\Exception $exception) {
             throw new PdoException($exception->getMessage());

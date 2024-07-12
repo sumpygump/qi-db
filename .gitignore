@@ -2,3 +2,6 @@ vendor
 .qis
 tests/.phpunit.result.cache
 composer.lock
+docs
+.test-results
+phpdoc

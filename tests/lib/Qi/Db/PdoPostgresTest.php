@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Qi_Db_PdoMysql Test class file
+ * Qi_Db_PdoPostgres Test class file
  *
  * @package Qi\Db\Tests
  */
@@ -12,20 +12,20 @@ namespace Qi\Db\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Qi\Db\PdoException;
-use Qi\Db\PdoMysql;
+use Qi\Db\PdoPostgres;
 
 /**
- * Qi_Console_PdoMysql Test class
+ * Qi_Console_PdoPostgres Test class
  *
  * @package Qi\Db\Tests
  * @author  Jansen Price <jansen.price@gmail.com>
  */
-class PdoMysqlTest extends TestCase
+class PdoPostgresTest extends TestCase
 {
     /**
      * The object under test
      *
-     * @var PdoMysql
+     * @var PdoPostgres
      */
     public $object;
 
@@ -37,10 +37,10 @@ class PdoMysqlTest extends TestCase
     public function setUp(): void
     {
         $cfg = [
-            'host'     => MYSQL_HOST,
-            'user'     => MYSQL_USER,
-            'pass'     => MYSQL_PASS,
-            'db'       => MYSQL_DB,
+            'host'     => POSTGRES_HOST,
+            'user'     => POSTGRES_USER,
+            'pass'     => POSTGRES_PASS,
+            'db'       => POSTGRES_DB,
             'log'      => true,
             'log_file' => 'testdb.log',
         ];
@@ -68,7 +68,7 @@ class PdoMysqlTest extends TestCase
      */
     protected function createObject($cfg)
     {
-        $this->object = new PdoMysql($cfg);
+        $this->object = new PdoPostgres($cfg);
     }
 
     /**
@@ -94,7 +94,7 @@ class PdoMysqlTest extends TestCase
     public function testConstructWithBadParams()
     {
         $this->expectException(PdoException::class);
-        $this->expectExceptionMessage('Name or service not known');
+        $this->expectExceptionMessage("could not translate host name");
 
         $cfg = [
             'host'     => 'picklejuice',
@@ -115,7 +115,7 @@ class PdoMysqlTest extends TestCase
      */
     public function testCreateTable()
     {
-        $sql = "select * from users";
+        $sql = "SELECT * FROM users";
 
         $r = $this->object->fetchRows($sql);
 
@@ -172,7 +172,7 @@ class PdoMysqlTest extends TestCase
     public function testInvalidQuery()
     {
         $this->expectException('PdoException');
-        $this->expectExceptionMessage('doesn\'t');
+        $this->expectExceptionMessage("does not exist");
 
         $sql = "SELECT * FROM foobar WHERE email=?";
 
@@ -188,7 +188,7 @@ class PdoMysqlTest extends TestCase
      */
     public function testRawInsert()
     {
-        $set = "(`name`, `email`) values ('jansen', 'jansen@test.com')";
+        $set = "(name, email) values ('jansen', 'jansen@test.com')";
 
         $expected = [
             'id'    => '1',
@@ -291,7 +291,7 @@ class PdoMysqlTest extends TestCase
      *
      * @return void
      */
-    public function testRawUpdate()
+    public function testSafeUpdate()
     {
         $response = $this->object->rawUpdate(
             'users',
@@ -320,7 +320,7 @@ class PdoMysqlTest extends TestCase
     }
 
     /**
-     * Test the delete method
+     * Test delete
      *
      * @return void
      */
@@ -541,25 +541,30 @@ class PdoMysqlTest extends TestCase
      */
     public function testRawAlter()
     {
-        $alter = 'ADD COLUMN active int(11)';
+        $alter = 'ADD COLUMN active int';
 
         $result = $this->object->rawAlter('users', $alter);
 
-        $statement = $this->object->executeQuery("describe `users`");
+        // Try to use the new column to insert data
+        $sql = "INSERT INTO users (name, email, active) values (?, ?, ?)";
+        $data = ['jansen', 'jansen@test.com', '1'];
+        $r = $this->object->executeQuery($sql, $data);
 
-        $schema = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        // Check that it worked
+        $sql = "SELECT * FROM users;";
+        $users = $this->object->fetchRows($sql);
 
-        // This is the expected third column (row in pragma array)
         $expected = [
-            'Field'      => 'active',
-            'Type'       => 'int',
-            'Null'       => 'YES',
-            'Key'        => '',
-            'Default'    => null,
-            'Extra'      => '',
+            'id' => 1,
+            'name' => 'jansen',
+            'email' => 'jansen@test.com',
+            'active' => 1,
         ];
 
-        $this->assertEquals($expected, $schema[3]);
+        if (false == $users) {
+            $users = [];
+        }
+        $this->assertEquals($expected, end($users));
     }
 
     /**
@@ -570,7 +575,7 @@ class PdoMysqlTest extends TestCase
     public function testRawAlterError()
     {
         $this->expectException('PdoException');
-        $this->expectExceptionMessage('Multiple');
+        $this->expectExceptionMessage('multiple primary keys');
 
         $alter = 'ADD COLUMN active integer PRIMARY KEY';
 
@@ -586,7 +591,7 @@ class PdoMysqlTest extends TestCase
     {
         $result = $this->object->rawOptimize('users');
 
-        $this->assertTrue($result);
+        $this->assertFalse($result);
     }
 
     /**
@@ -598,7 +603,7 @@ class PdoMysqlTest extends TestCase
     {
         $result = $this->object->rawRepair('users');
 
-        $this->assertTrue($result);
+        $this->assertFalse($result);
     }
 
     /**
@@ -690,10 +695,10 @@ class PdoMysqlTest extends TestCase
     public function testLog()
     {
         $cfg = [
-            'host'     => MYSQL_HOST,
-            'user'     => MYSQL_USER,
-            'pass'     => MYSQL_PASS,
-            'db'       => MYSQL_DB,
+            'host'     => POSTGRES_HOST,
+            'user'     => POSTGRES_USER,
+            'pass'     => POSTGRES_PASS,
+            'db'       => POSTGRES_DB,
             'log'      => false,
             'log_file' => 'testdb.log',
         ];
@@ -712,11 +717,10 @@ class PdoMysqlTest extends TestCase
      */
     protected function createTestTable()
     {
-        $sql = "create table users (
-            `id` tinyint auto_increment,
-            `name` varchar(50),
-            `email` varchar(50),
-            primary key (`id`)
+        $sql = "CREATE TABLE users (
+            id SERIAL PRIMARY KEY,
+            name character varying(50),
+            email character varying(50)
         );";
 
         $this->object->executeQuery($sql);
@@ -729,7 +733,7 @@ class PdoMysqlTest extends TestCase
      */
     protected function dropTestTable()
     {
-        $sql = "DROP TABLE `users`";
+        $sql = "DROP TABLE users;";
 
         $this->object->executeQuery($sql);
     }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PdoSqlite Db class file
+ * Pdo Postgres class file
  *
  * @package Qi\Db
  */
@@ -9,9 +9,9 @@
 namespace Qi\Db;
 
 /**
- * Qi Db PdoSqlite class
+ * Qi Db Postgres class
  *
- * Provides common functions for an interface to sqlite db.
+ * Provides common functions for interface to postgresql db.
  *
  * @package Qi\Db
  * @uses \Qi\Db\PdoAbstract
@@ -19,7 +19,7 @@ namespace Qi\Db;
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  * @version 1.2.1
  */
-class PdoSqlite extends PdoAbstract
+class PdoPostgres extends PdoAbstract
 {
     /**
      * Db Config defaults
@@ -29,8 +29,10 @@ class PdoSqlite extends PdoAbstract
     protected $configDefaults = [
         'log'      => false,
         'log_file' => '',
-        'dbfile'   => 'data.db3',
-        'version'  => '3',
+        'host'     => '',
+        'db'       => '',
+        'user'     => '',
+        'pass'     => '',
     ];
 
     /**
@@ -49,42 +51,45 @@ class PdoSqlite extends PdoAbstract
      */
     public function init()
     {
-        if ($this->config['version'] == '2') {
-            $dsnPrefix = 'sqlite2';
-        } else {
-            $dsnPrefix = 'sqlite';
+        if (trim((string) $this->config['db']) == '') {
+            throw new PdoException("Invalid connection parameters.");
         }
 
         try {
-            $this->resource = new \PDO($dsnPrefix . ':' . $this->config['dbfile']);
+            $this->resource = new \PDO(
+                'pgsql:host=' . $this->config['host']
+                . ';dbname=' . $this->config['db'],
+                (string) $this->config['user'],
+                (string) $this->config['pass']
+            );
         } catch (\Exception $exception) {
             throw new PdoException($exception->getMessage());
+        }
+
+        if (!$this->resource) {
+            throw new PdoException("PdoPostgres connection error.");
         }
     }
 
     /**
      * Safely optimize a table
      *
-     * @param string $table The table name
+     * @param string $tableName The table name
      * @return bool Whether the statement executed successfully
      */
-    public function rawOptimize($table)
+    public function rawOptimize($tableName)
     {
-        $this->log("Optimize is not available for sqlite.", "Warning");
-
         return false;
     }
 
     /**
      * Safely repair a table
      *
-     * @param string $table The table name
+     * @param string $tableName The table name
      * @return bool Whether the statement executed successfully
      */
-    public function rawRepair($table)
+    public function rawRepair($tableName)
     {
-        $this->log("Repair is not available for sqlite.", "Warning");
-
         return false;
     }
 }

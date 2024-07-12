@@ -3,24 +3,32 @@
 /**
  * Qi\Db\PdoSqlite Test class file
  *
- * @package Qi
+ * @package Qi\Tests
  */
 
 // phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 
 namespace Qi\Db\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Qi\Db\PdoSqlite;
 use Qi\Db\PdoException;
 
 /**
  * PdoSqlite Test class
  *
- * @package Qi
+ * @package Qi\Tests
  * @author  Jansen Price <jansen.price@gmail.com>
  */
-class PdoSqliteTest extends BaseTestCase
+class PdoSqliteTest extends TestCase
 {
+    /**
+     * The object under test
+     *
+     * @var PdoSqlite
+     */
+    public $object;
+
     /**
      * Setup before each test
      *
@@ -87,7 +95,7 @@ class PdoSqliteTest extends BaseTestCase
      * Test initializing connection to db file to a folder without write
      * permissions
      *
-     * @return            void
+     * @return void
      */
     public function testConstructToFolderWithoutWritePerms()
     {
@@ -103,7 +111,7 @@ class PdoSqliteTest extends BaseTestCase
     /**
      * testConstructWithBadParams
      *
-     * @return            void
+     * @return void
      */
     public function testConstructWithBadParams()
     {
@@ -166,6 +174,9 @@ class PdoSqliteTest extends BaseTestCase
 
         $actual = $this->object->fetchRows($sql);
 
+        if (false == $actual) {
+            $actual = [];
+        }
         $this->assertEquals($expected, end($actual));
     }
 
@@ -207,13 +218,16 @@ class PdoSqliteTest extends BaseTestCase
 
         $actual = $this->object->fetchRows($sql);
 
+        if (false == $actual) {
+            $actual = [];
+        }
         $this->assertEquals($expected, end($actual));
     }
 
     /**
      * Test raw insert with error
      *
-     * @return            void
+     * @return void
      */
     public function testRawInsertWithError()
     {
@@ -231,6 +245,9 @@ class PdoSqliteTest extends BaseTestCase
 
         $actual = $this->object->fetchRows($sql);
 
+        if (false == $actual) {
+            $actual = [];
+        }
         $this->assertEquals($expected, end($actual));
     }
 
@@ -259,13 +276,16 @@ class PdoSqliteTest extends BaseTestCase
 
         $actual = $this->object->fetchRows($sql);
 
+        if (false == $actual) {
+            $actual = [];
+        }
         $this->assertEquals($expected, end($actual));
     }
 
     /**
      * Test calling insert with a column that doesn't exist on table
      *
-     * @return            void
+     * @return void
      */
     public function testInsertWithExtraColumn()
     {
@@ -315,6 +335,11 @@ class PdoSqliteTest extends BaseTestCase
         $this->assertTrue($response);
     }
 
+    /**
+     * Test delete
+     *
+     * @return void
+     */
     public function testDelete()
     {
         $response = $this->object->delete('users', 'id=?', [1]);
@@ -556,7 +581,7 @@ class PdoSqliteTest extends BaseTestCase
     /**
      * Test raw alter with an error
      *
-     * @return            void
+     * @return void
      */
     public function testRawAlterError()
     {
@@ -696,7 +721,7 @@ class PdoSqliteTest extends BaseTestCase
     /**
      * Create object
      *
-     * @param  array $cfg Config
+     * @param array<string, bool|int|string> $cfg Config
      * @return void
      */
     protected function createObject($cfg)
@@ -732,7 +757,7 @@ class PdoSqliteTest extends BaseTestCase
             'email' => 'jansen@test.com',
         ];
 
-        return $this->object->insert('users', $data);
+        $this->object->insert('users', $data);
     }
 
     /**
@@ -747,6 +772,6 @@ class PdoSqliteTest extends BaseTestCase
             'email' => 'orihah@test.com',
         ];
 
-        return $this->object->insert('users', $data);
+        $this->object->insert('users', $data);
     }
 }

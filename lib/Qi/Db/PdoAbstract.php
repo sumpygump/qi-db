@@ -3,8 +3,7 @@
 /**
  * Abstract Pdo Db class file
  *
- * @package Qi
- * @subpackage Db
+ * @package Qi\Db
  */
 
 namespace Qi\Db;
@@ -14,8 +13,8 @@ namespace Qi\Db;
  *
  * Provides common functions for an interface to a PDO DB connection.
  *
- * @package Qi
- * @subpackage Db
+ * @package Qi\Db
+ * @mixin \PDOStatement
  * @author Jansen Price <jansen.price@gmail.com>
  * @license http://www.opensource.org/licenses/mit-license.php MIT
  * @version 1.2.1
@@ -35,14 +34,14 @@ class PdoAbstract
     /**
      * Db Config settings
      *
-     * @var array
+     * @var array<string, string|int|bool>
      */
     protected $config;
 
     /**
      * Db Config defaults
      *
-     * @var array
+     * @var array<string, string|int|bool>
      */
     protected $configDefaults = [
         'log'      => false,
@@ -52,14 +51,14 @@ class PdoAbstract
     /**
      * The database resource object
      *
-     * @var PDO
+     * @var \PDO
      */
     protected $resource;
 
     /**
      * Array of errors encountered
      *
-     * @var array
+     * @var string[]
      */
     protected $errors = [];
 
@@ -73,7 +72,7 @@ class PdoAbstract
     /**
      * Constructor
      *
-     * @param array $config Database configuration data
+     * @param array<string,bool|int|string> $config Database configuration data
      * @return void
      */
     public function __construct($config = null)
@@ -102,15 +101,15 @@ class PdoAbstract
      * Safely execute a SQL query statement
      *
      * @param string $sqlString The sql query statement
-     * @param array $values Data to bind to query
-     * @return PDOStatement
+     * @param array<string|int>|null $values Data to bind to query
+     * @return \PDOStatement
      */
     public function executeQuery($sqlString, $values = null)
     {
         // Log the SQL statement if logging is enabled
         $this->log($sqlString);
         if (!empty($values)) {
-            $this->log(trim(print_r($values, 1)), 'DATA');
+            $this->log(trim(print_r($values, true)), 'DATA');
         }
 
         // Prepare the query
@@ -140,8 +139,8 @@ class PdoAbstract
      * Insert a row into a table
      *
      * @param string $tableName Name of table
-     * @param array $data Associative array with data to insert
-     * @return int|bool The resulting insert id or false
+     * @param string[] $data Associative array with data to insert
+     * @return string|false The resulting insert id or false
      */
     public function insert($tableName, $data)
     {
@@ -163,7 +162,7 @@ class PdoAbstract
      *
      * @param string $tableName The table name
      * @param string $sqlString The set part of the query e.g. "VALUES (...)"
-     * @param mixed $values Optional data to bind to prepared statement
+     * @param string[]|null $values Optional data to bind to prepared statement
      * @return bool Whether the statement executed successfully
      */
     public function rawInsert($tableName, $sqlString, $values = null)
@@ -180,8 +179,9 @@ class PdoAbstract
      * Update a row
      *
      * @param string $tableName Table name
-     * @param array $data Associative array of data
+     * @param string[] $data Associative array of data
      * @param string $where Where clause content
+     * @param array<string|int> $whereValues The values to bind to the where clause
      * @return mixed
      */
     public function update($tableName, $data, $where, $whereValues = [])
@@ -205,7 +205,7 @@ class PdoAbstract
      * @param string $tableName The table name
      * @param string $assignmentString The set part of the query e.g. "col='value'"
      * @param string $where The where clause
-     * @param mixed $data Optional data to bind to prepared statement
+     * @param array<string|int>|null $values Optional data to bind to prepared statement
      * @return bool Whether the statement executed successfully
      */
     public function rawUpdate($tableName, $assignmentString, $where, $values = null)
@@ -223,7 +223,7 @@ class PdoAbstract
      *
      * @param string $tableName Name of table
      * @param string $where Where clause
-     * @param array $values Values to replace
+     * @param array<string|int>|null $values Values to replace
      * @return bool Whether the statement executed successfully
      */
     public function delete($tableName, $where, $values = null)
@@ -236,7 +236,7 @@ class PdoAbstract
      *
      * @param string $tableName The table name
      * @param string $where The where clause
-     * @param array $values Optional values to bind to prepared statement
+     * @param array<string|int>|null $values Optional values to bind to prepared statement
      * @return bool Whether the statement executed successfully
      */
     public function rawDelete($tableName, $where, $values = null)
@@ -255,12 +255,12 @@ class PdoAbstract
      * @param string $columns Comma separated list of columns to return
      * @param string $tableName The table name
      * @param string $where The where clause
-     * @return array The row or an empty array
+     * @return array<string>|bool The row or an empty array
      */
     public function simpleFetchRow($columns, $tableName, $where)
     {
         if (trim($where) == '') {
-            $where = '1';
+            $where = 'true';
         }
 
         $sql = "SELECT $columns FROM $tableName WHERE $where LIMIT 1;";
@@ -278,12 +278,12 @@ class PdoAbstract
      * @param string $columns The columns to return
      * @param string $table The table name
      * @param string $where The where clause
-     * @return array The rows or an empty array
+     * @return array<string>|bool The rows or an empty array
      */
     public function simpleFetchRows($columns, $table, $where)
     {
         if (trim($where) == '') {
-            $where = '1';
+            $where = 'true';
         }
 
         $sql = "SELECT $columns FROM $table WHERE $where";
@@ -299,10 +299,10 @@ class PdoAbstract
      * Execute a sql query and return the first resulting row
      *
      * @param string $query The sql query statement
-     * @param array $values Data to bind to query
+     * @param string[]|null $values Data to bind to query
      * @param int $indices The array indices returned
      *                     (SQLITE_NUM, SQLITE_ASSOC, SQLITE_BOTH)
-     * @return array|bool The resulting row or null
+     * @return string[]|bool The resulting row or null
      */
     public function fetchRow($query, $values = null, $indices = \PDO::FETCH_ASSOC)
     {
@@ -315,10 +315,10 @@ class PdoAbstract
      * Execute a sql query and return the resulting rows
      *
      * @param string $query The sql query statement
-     * @param array $values Data to bind to query
+     * @param string[]|null $values Data to bind to query
      * @param int $indices The array indices returned
      *                     (SQLITE_NUM, SQLITE_ASSOC, SQLITE_BOTH)
-     * @return array|bool The resulting rows or false
+     * @return array<string>|false The resulting rows or false
      */
     public function fetchRows($query, $values = null, $indices = \PDO::FETCH_ASSOC)
     {
@@ -332,12 +332,12 @@ class PdoAbstract
      *
      * @param string $tableName The table name
      * @param string $where The where clause
-     * @return string The resulting number of rows
+     * @return int|bool The resulting number of rows
      */
     public function getCount($tableName, $where)
     {
         if (trim($where) == '') {
-            $where = '1';
+            $where = 'true';
         }
 
         return $this->simpleFetchValue('count(*)', $tableName, $where);
@@ -351,7 +351,7 @@ class PdoAbstract
      * @param string $column The column name to extract
      * @param string $tableName The table name
      * @param string $where The where clause
-     * @return mixed The data or false
+     * @return int|bool The data or false
      */
     public function simpleFetchValue($column, $tableName, $where)
     {
@@ -361,6 +361,10 @@ class PdoAbstract
         $statement = $this->executeQuery($sql);
 
         $row = $statement->fetch(\PDO::FETCH_NUM);
+
+        if ($row == false) {
+            return false;
+        }
 
         if (isset($row[0])) {
             return $row[0];
@@ -393,6 +397,7 @@ class PdoAbstract
      */
     public function rawOptimize($table)
     {
+        return false;
     }
 
     /**
@@ -403,6 +408,7 @@ class PdoAbstract
      */
     public function rawRepair($table)
     {
+        return false;
     }
 
     /**
@@ -414,18 +420,14 @@ class PdoAbstract
      */
     public function escape($string)
     {
-        if (!function_exists('sqlite_escape_string')) {
-            return str_replace("'", "''", $string);
-        }
-
-        return sqlite_escape_string($string);
+        return str_replace("'", "''", $string);
     }
 
     /**
      * Magic call method to pass down to db object
      *
      * @param string $method Method name
-     * @param array $args Arguments
+     * @param string[] $args Arguments
      * @return mixed
      */
     public function __call($method, $args)
@@ -449,7 +451,7 @@ class PdoAbstract
     /**
      * Get errors
      *
-     * @return array An array of error messages that have been set
+     * @return string[] An array of error messages that have been set
      */
     public function getErrors()
     {
@@ -461,7 +463,7 @@ class PdoAbstract
      *
      * @param mixed $message Message to log
      * @param string $label Label
-     * @return void
+     * @return bool
      */
     public function log($message, $label = null)
     {
@@ -474,17 +476,19 @@ class PdoAbstract
         }
 
         file_put_contents(
-            $this->config['log_file'],
+            (string) $this->config['log_file'],
             $label . " ==> " . $message . "\n",
             FILE_APPEND
         );
+
+        return true;
     }
 
     /**
      * Log a PDO Error
      *
-     * @param array $err PDO Error Info array
-     * @return void
+     * @param array<string|int> $err PDO Error Info array
+     * @return PdoException
      */
     protected function logPdoError($err)
     {
@@ -502,7 +506,7 @@ class PdoAbstract
 
         return new PdoException(
             $errorMessage,
-            $err[self::ERRINFO_ERROR_CODE]
+            (int) $err[self::ERRINFO_ERROR_CODE]
         );
     }
 }
