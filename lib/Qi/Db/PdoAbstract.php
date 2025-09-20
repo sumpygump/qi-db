@@ -178,6 +178,13 @@ class PdoAbstract
     /**
      * Update a row
      *
+     * Example usage:
+     * ```php
+     * $db->update('users', ['is_active' => 1], 'id=937');
+     * // or
+     * $db->update('users', ['is_active' => 1], 'id=?', [937]);
+     * ```
+     *
      * @param string $tableName Table name
      * @param string[] $data Associative array of data
      * @param string $where Where clause content
@@ -219,11 +226,16 @@ class PdoAbstract
     }
 
     /**
-     * delete
+     * Delete a record
+     *
+     * Example usage:
+     * ```php
+     * $db->delete('users', 'id=?', [27]);
+     * ```
      *
      * @param string $tableName Name of table
-     * @param string $where Where clause
-     * @param array<string|int>|null $values Values to replace
+     * @param string $where Where clause, can use syntax like 'id=?'
+     * @param array<string|int>|null $values Values to bind to query
      * @return bool Whether the statement executed successfully
      */
     public function delete($tableName, $where, $values = null)
